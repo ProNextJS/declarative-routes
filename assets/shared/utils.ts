@@ -103,17 +103,22 @@ function getAllParamsAsArrays(
   return params;
 }
 
-function convertToRequiredType(
+function convertToRequiredType<T>(
   values: string[],
-  schema: z.ZodTypeAny
-): ParsedData<any> {
+  schema: z.ZodType<T>
+): ParsedData<T> {
   const usedSchema = getInnerType(schema);
-  if (values.length > 1 && !(usedSchema instanceof z.ZodArray))
+
+  if (values.length > 1 && !(usedSchema instanceof z.ZodArray)) {
     return { error: "Multiple values for non-array field" };
-  const value = parseValues(usedSchema, values);
-  if (value.error && schema.constructor === z.ZodDefault) {
-    return { data: undefined };
   }
+
+  const value = parseValues(usedSchema, values);
+
+  if (value.error && schema.constructor === z.ZodDefault) {
+    return { data: undefined as unknown as T };
+  }
+
   return value;
 }
 

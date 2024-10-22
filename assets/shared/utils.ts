@@ -13,39 +13,36 @@ export function safeParseSearchParams<
   return processSchema(schema, paramsArray);
 }
 
-function processSchema(
-  schema: z.ZodTypeAny,
+function processSchema<
+  TObject extends z.ZodObject<z.ZodRawShape>,
+  TUnion extends z.ZodUnion<[TObject, ...TObject[]]>
+>(
+  schema: TObject | TUnion | z.ZodOptional<TObject | TUnion>,
   paramsArray: Record<string, string[]>
-): Record<string, any> {
+): z.infer<TObject | TUnion> {
   if (schema instanceof z.ZodOptional) {
-    schema = schema._def.innerType;
+    return processSchema(schema._def.innerType, paramsArray);
   }
-  switch (schema.constructor) {
-    case z.ZodObject: {
-      const shape = (schema as z.ZodObject<z.ZodRawShape>).shape;
-      return parseShape(shape, paramsArray);
-    }
-    case z.ZodUnion: {
-      const options = (
-        schema as z.ZodUnion<
-          [z.ZodObject<z.ZodRawShape>, ...z.ZodObject<z.ZodRawShape>[]]
-        >
-      )._def.options;
-      for (const option of options) {
-        const shape = option.shape;
-        const requireds = getRequireds(shape);
 
-        const result = parseShape(shape, paramsArray, true);
-        const keys = Object.keys(result);
+  if (schema instanceof z.ZodObject) {
+    const shape = schema.shape;
+    return parseShape(shape, paramsArray) as z.infer<TObject>;
+  } else if (schema instanceof z.ZodUnion) {
+    const options = schema._def.options;
+    for (const option of options) {
+      const shape = option.shape;
+      const requireds = getRequireds(shape);
 
-        if (requireds.every((key) => keys.includes(key))) {
-          return result;
-        }
+      const result = parseShape(shape, paramsArray, true);
+      const keys = Object.keys(result);
+
+      if (requireds.every((key) => keys.includes(key))) {
+        return result as z.infer<TUnion>;
       }
-      return {};
     }
-    default:
-      throw new Error("Unsupported schema type");
+    return {} as z.infer<TUnion>;
+  } else {
+    throw new Error("Unsupported schema type");
   }
 }
 

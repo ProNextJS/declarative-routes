@@ -59,12 +59,12 @@ function getRequireds(shape: z.ZodRawShape) {
   return keys;
 }
 
-function parseShape(
-  shape: z.ZodRawShape,
+function parseShape<T extends z.ZodRawShape>(
+  shape: T,
   paramsArray: Record<string, string[]>,
   isPartOfUnion = false
-): Record<string, any> {
-  const parsed: Record<string, any> = {};
+): Partial<Record<keyof T, unknown>> {
+  const parsed: Partial<Record<keyof T, unknown>> = {};
 
   for (const key in shape) {
     if (shape.hasOwnProperty(key)) {

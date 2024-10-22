@@ -117,7 +117,10 @@ function convertToRequiredType(
   return value;
 }
 
-function parseValues(schema: any, values: string[]): ParsedData<any> {
+function parseValues<T extends z.ZodTypeAny>(
+  schema: T,
+  values: string[]
+): ParsedData<z.infer<T>> {
   switch (schema.constructor) {
     case z.ZodNumber:
       return parseNumber(values[0]);

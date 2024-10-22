@@ -2,10 +2,13 @@ import { z } from "zod";
 
 type ParsedData<T> = { error?: string; data?: T };
 
-export function safeParseSearchParams<T extends z.ZodTypeAny>(
-  schema: T,
+export function safeParseSearchParams<
+  TObject extends z.ZodObject<z.ZodRawShape>,
+  TUnion extends z.ZodUnion<[TObject, ...TObject[]]>
+>(
+  schema: TObject | TUnion | z.ZodOptional<TObject | TUnion>,
   searchParams: URLSearchParams
-): z.infer<T> {
+): z.infer<TObject | TUnion> {
   const paramsArray = getAllParamsAsArrays(searchParams);
   return processSchema(schema, paramsArray);
 }

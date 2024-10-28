@@ -5,6 +5,8 @@ import { ZodSchema, z } from "zod";
 import queryString from "query-string";
 import {
   Link,
+  Navigate,
+  NavigateProps,
   NavLink,
   useParams as useParmsRR,
   useSearchParams as useSearchParamsRR,
@@ -60,6 +62,9 @@ export type RouteBuilder<
       params?: z.input<Params>;
       search?: z.input<Search>;
     } & { children?: React.ReactNode }
+  >;
+  Navigate: React.FC<
+    Omit<NavigateProps, "to"> & z.input<Params> & { search?: z.input<Search> }
   >;
 
   params: z.output<Params>;
@@ -271,6 +276,24 @@ export function makeRoute<
       >
         {children}
       </NavLink>
+    );
+  };
+
+  routeBuilder.Navigate = function RouteLink({
+    search: linkSearch,
+    ...props
+  }: Omit<NavigateProps, "to"> &
+    z.input<Params> & { search?: z.input<Search> }) {
+    const params = info.params.parse(props);
+    const extraProps = { ...props };
+    for (const key of Object.keys(params)) {
+      delete extraProps[key];
+    }
+    return (
+      <Navigate
+        {...props}
+        to={routeBuilder(info.params.parse(props), linkSearch)}
+      />
     );
   };
 

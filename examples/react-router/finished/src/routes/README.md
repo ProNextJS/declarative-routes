@@ -37,6 +37,19 @@ return (
   </Home.NavLink>
 );
 ```
+
+For navigate when it is rendered, use the `Navigate` component (built on top of `Navigate`) to change the current location to other page. For example:
+
+```tsx
+import { SignIn, Home } from "./src/routes";
+
+if (!isAuthorized) return <SignIn.Navigate />;
+
+return <Home.Navigate />;
+```
+
+This is the equivalent of doing `<Navigate to="/sign-in" />` with in a component.
+
 # Configure declarative-routing
 
 After running `npx declarative-routing init`, you don't need to configure anything to use it.
